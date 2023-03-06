@@ -72,12 +72,16 @@ const App: FC = () => {
 		setTodo(item.name);
 		setEditItem(item.id)
 	}
-	function remove(item: List){
-		axios.delete(backend_url, {headers: { Authorization: `Bearer ${token}` }, data: item})
-		.then(response => {
-			console.log('remove response:', response)
-			setTodoList(response.data.data)
-		})
+	async function remove(item: List) {
+		try {
+			await axios.delete(backend_url, { headers: { Authorization: `Bearer ${token}` }, data: item })
+				.then(response => {
+					console.log('remove response:', response);
+					setTodoList(response.data.data);
+				});
+		} catch (error) {
+			console.log(error);
+		}
 	}
 	function logging(user: User | null){
 		if(!user){
