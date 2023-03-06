@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useState } from 'react';
 import './App.css';
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 
 const App: FC = () => {
 	interface List{
@@ -11,7 +11,8 @@ const App: FC = () => {
 		username: string,
 		role: string,
 	}
-	const [user, setUser] = useState<User | null>({ username: 'Admin', role: 'admin'})
+	const [user, setUser] = useState<User | null>(null);
+	const [token, setToken] = useState<string>('');
 	const [todoList, setTodoList] = useState<List[]>([]);
 	const [todo, setTodo] = useState<string>('');
 	const [editItem, setEditItem] = useState<string>('');
@@ -39,8 +40,10 @@ const App: FC = () => {
 
 	// eslint-disable-next-line @typescript-eslint/typedef
 	const add = (item: string, isEdit: string) => {
-		//event?.preventDefault
-		console.log(item)
+		event?.preventDefault
+		const config: AxiosRequestConfig = {
+			headers: { Authorization: `Bearer ${token}` }
+		};
 		let itemId: string = (todoList.length + 1).toString();
 		if(isEdit){
 			itemId = isEdit;
@@ -48,14 +51,19 @@ const App: FC = () => {
 				name: item,
 				id: itemId,
 			}
-			axios.put(backend_url, newTodo )
-			.then(response => setTodoList(response.data))
+			axios.put(backend_url, newTodo, config)
+			.then(response => {
+				console.log(response)
+				// eslint-disable-next-line no-debugger
+				setTodoList(response.data)
+			})
 		}else{
 			const newTodo: List = {
 				name: item,
 				id: itemId,
 			}
-			axios.post(backend_url, newTodo )
+			console.log(token)
+			axios.post(backend_url, newTodo, config)
 			.then(response => console.log(response))
 		}
 		setEditItem('');
@@ -65,13 +73,19 @@ const App: FC = () => {
 		setEditItem(item.id)
 	}
 	function remove(item: List){
-		console.log(item);
-		axios.delete(backend_url, {data: item})
-		.then(response => setTodoList(response.data));
+		axios.delete(backend_url, {headers: { Authorization: `Bearer ${token}` }, data: item})
+		.then(response => {
+			console.log('remove response:', response)
+			setTodoList(response.data.data)
+		})
 	}
 	function logging(user: User | null){
 		if(!user){
-			axios.post(`http://localhost:5000/login`, {username: 'Admin' token: BEARER })
+			axios.post(`http://localhost:5000/login`, {username: 'Admin'})
+			.then(response => {
+				console.log(response.data.accessToken);
+				setToken(response.data.accessToken);
+			})
 			setUser({ username: 'Admin', role: 'admin'});
 			console.log(user)
 		}
